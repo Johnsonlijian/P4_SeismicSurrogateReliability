@@ -32,16 +32,35 @@ The analysis upgrades the manuscript from a metric-comparison note to a reliabil
 
 ## Decision-risk reliability summary at 1% IDR
 
-| protocol              | IDR_threshold   |   false_safe_cost | winner       |   true_exceed |   false_safe |   beta_FS |   false_unsafe |   expected_loss |
-|:----------------------|:----------------|------------------:|:-------------|--------------:|-------------:|----------:|---------------:|----------------:|
-| event-disjoint target | 1.0%            |                 1 | XGB direct   |         0.018 |       0.0047 |      2.6  |         0.0166 |           0.021 |
-| event-disjoint target | 1.0%            |                10 | LGBM direct  |         0.018 |       0.0031 |      2.73 |         0.0202 |           0.051 |
-| event-disjoint target | 1.0%            |                50 | LGBM direct  |         0.018 |       0.0031 |      2.73 |         0.0202 |           0.177 |
-| event-disjoint target | 1.0%            |               100 | Ridge direct |         0.018 |       0.0016 |      2.95 |         0.1155 |           0.273 |
-| main event-held-out   | 1.0%            |                 1 | XGB direct   |         0.034 |       0.0031 |      2.73 |         0.0335 |           0.037 |
-| main event-held-out   | 1.0%            |                10 | LGBM direct  |         0.034 |       0.0021 |      2.86 |         0.0397 |           0.061 |
-| main event-held-out   | 1.0%            |                50 | LGBM direct  |         0.034 |       0.0021 |      2.86 |         0.0397 |           0.147 |
-| main event-held-out   | 1.0%            |               100 | MLP scratch  |         0.034 |       0.0015 |      2.98 |         0.0796 |           0.225 |
+| protocol              | IDR_threshold   |   false_safe_cost | winner       |   true_exceed |   false_safe |   false_safe_U95 |   beta_FS |   beta_FS_cons |   false_unsafe |   expected_loss |
+|:----------------------|:----------------|------------------:|:-------------|--------------:|-------------:|-----------------:|----------:|---------------:|---------------:|----------------:|
+| event-disjoint target | 1.0%            |                 1 | XGB direct   |         0.018 |       0.0047 |           0.0109 |      2.6  |           2.29 |         0.0166 |           0.021 |
+| event-disjoint target | 1.0%            |                10 | LGBM direct  |         0.018 |       0.0031 |           0.0072 |      2.73 |           2.45 |         0.0202 |           0.051 |
+| event-disjoint target | 1.0%            |                50 | LGBM direct  |         0.018 |       0.0031 |           0.0072 |      2.73 |           2.45 |         0.0202 |           0.177 |
+| event-disjoint target | 1.0%            |               100 | Ridge direct |         0.018 |       0.0016 |           0.0042 |      2.95 |           2.64 |         0.1155 |           0.273 |
+| main event-held-out   | 1.0%            |                 1 | XGB direct   |         0.034 |       0.0031 |           0.0062 |      2.73 |           2.5  |         0.0335 |           0.037 |
+| main event-held-out   | 1.0%            |                10 | LGBM direct  |         0.034 |       0.0021 |           0.0047 |      2.86 |           2.6  |         0.0397 |           0.061 |
+| main event-held-out   | 1.0%            |                50 | LGBM direct  |         0.034 |       0.0021 |           0.0047 |      2.86 |           2.6  |         0.0397 |           0.147 |
+| main event-held-out   | 1.0%            |               100 | MLP scratch  |         0.034 |       0.0015 |           0.0028 |      2.98 |           2.77 |         0.0796 |           0.225 |
+
+## Event-level residual variance decomposition
+
+| protocol              | model               | model_label   |   event_count |   between_event_residual_var |   within_event_residual_var |   between_event_share |   p90_abs_event_mean_residual |   mean_event_rmse |
+|:----------------------|:--------------------|:--------------|--------------:|-----------------------------:|----------------------------:|----------------------:|------------------------------:|------------------:|
+| event-disjoint target | scratch_mlp         | MLP scratch   |             8 |                   0.2237     |                   0.180038  |              0.554072 |                      0.741102 |          0.475604 |
+| event-disjoint target | ridge_direct        | Ridge direct  |             8 |                   0.0381105  |                   0.0445251 |              0.461187 |                      0.463254 |          0.376388 |
+| event-disjoint target | rf_direct           | RF direct     |             8 |                   0.0187411  |                   0.0231943 |              0.446905 |                      0.200349 |          0.19531  |
+| event-disjoint target | xgb_direct          | XGB direct    |             8 |                   0.0110733  |                   0.0176146 |              0.385993 |                      0.158611 |          0.161528 |
+| event-disjoint target | hgb_direct          | HGB direct    |             8 |                   0.0126746  |                   0.0202404 |              0.38507  |                      0.172238 |          0.17485  |
+| event-disjoint target | lgbm_direct         | LGBM direct   |             8 |                   0.0104676  |                   0.0190707 |              0.354373 |                      0.166332 |          0.165754 |
+| event-disjoint target | pretrained_finetune | MLP finetune  |             8 |                   0.011407   |                   0.0634921 |              0.152299 |                      0.154465 |          0.243517 |
+| main event-held-out   | ridge_direct        | Ridge direct  |            14 |                   0.0287666  |                   0.0321203 |              0.47246  |                      0.328738 |          0.235041 |
+| main event-held-out   | hgb_direct          | HGB direct    |            14 |                   0.0111302  |                   0.0187836 |              0.372077 |                      0.177019 |          0.167238 |
+| main event-held-out   | lgbm_direct         | LGBM direct   |            14 |                   0.0101795  |                   0.0174569 |              0.368337 |                      0.177496 |          0.160797 |
+| main event-held-out   | rf_direct           | RF direct     |            14 |                   0.0106138  |                   0.0206179 |              0.339841 |                      0.172481 |          0.169868 |
+| main event-held-out   | xgb_direct          | XGB direct    |            14 |                   0.00885195 |                   0.0175744 |              0.334967 |                      0.143212 |          0.156305 |
+| main event-held-out   | pretrained_finetune | MLP finetune  |            14 |                   0.0114361  |                   0.0251105 |              0.312919 |                      0.158069 |          0.182354 |
+| main event-held-out   | scratch_mlp         | MLP scratch   |            14 |                   0.00775538 |                   0.0251805 |              0.235469 |                      0.164336 |          0.182985 |
 
 ## False-safe reliability winners by protocol at 1% IDR
 
@@ -52,7 +71,7 @@ The analysis upgrades the manuscript from a metric-comparison note to a reliabil
 
 ## Boundary
 
-The reliability index is an empirical diagnostic for screening-rule false-safe probability, not a replacement for component/system-level code calibration or PBEE/FEMA P-58 loss assessment.
+The reliability index is an empirical diagnostic for screening-rule false-safe probability, not a replacement for component/system-level code calibration or PBEE/FEMA P-58 loss assessment. Because the rates are event-equal and clustered, the conservative beta_FS column uses an event-bootstrap upper 95% false-safe bound rather than an independent Bernoulli assumption.
 
 ## Generated files
 

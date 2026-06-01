@@ -47,6 +47,8 @@ N_TARGET = 500
 THRESHOLDS = np.array([0.005, 0.0075, 0.010, 0.015, 0.020, 0.030, 0.040])
 COSTS = [1, 10, 50, 100]
 NORMAL = NormalDist()
+BOOTSTRAP_REPS = 3000
+BOOTSTRAP_SEED = 20260601
 
 MODEL_LABELS = {
     "xgb_direct": "XGB direct",
@@ -112,6 +114,19 @@ def beta_false_safe(p: float) -> float:
     """Map empirical false-safe probability to a reliability-style index."""
     p = float(np.clip(p, 1e-6, 1.0 - 1e-6))
     return float(-NORMAL.inv_cdf(p))
+
+
+def bootstrap_mean_ci(values: np.ndarray, rng: np.random.Generator, n_boot: int = BOOTSTRAP_REPS) -> tuple[float, float]:
+    """Event-bootstrap interval for an event-equal mean."""
+    vals = np.asarray(values, dtype=float)
+    vals = vals[np.isfinite(vals)]
+    if vals.size == 0:
+        return float("nan"), float("nan")
+    if vals.size == 1:
+        return float(vals[0]), float(vals[0])
+    draws = rng.integers(0, vals.size, size=(n_boot, vals.size))
+    means = vals[draws].mean(axis=1)
+    return float(np.quantile(means, 0.025)), float(np.quantile(means, 0.975))
 
 
 def tex_escape(value: object) -> str:
@@ -325,12 +340,19 @@ def build_table3() -> pd.DataFrame:
     return out
 
 
-def build_table4() -> pd.DataFrame:
+def build_table4(reliability: pd.DataFrame) -> pd.DataFrame:
     winners = pd.read_csv(R22_WINNERS)
     focus = winners[
         winners["threshold_idr"].eq(0.01) & winners["cost_ratio_false_safe"].isin(COSTS)
     ].copy()
+    rel_focus = reliability[reliability["threshold_idr"].eq(0.01)][
+        ["protocol", "model_label", "threshold_idr", "false_safe_ci95_hi", "beta_false_safe_cons"]
+    ].copy()
+    focus = focus.merge(rel_focus, on=["protocol", "model_label", "threshold_idr"], how="left")
     focus["beta_false_safe"] = focus["false_safe_rate"].map(beta_false_safe)
+    focus["beta_false_safe_cons"] = focus["beta_false_safe_cons"].fillna(
+        focus["false_safe_ci95_hi"].fillna(focus["false_safe_rate"]).map(beta_false_safe)
+    )
     out = focus.sort_values(["protocol", "cost_ratio_false_safe"]).copy()
     out = pd.DataFrame(
         {
@@ -340,7 +362,9 @@ def build_table4() -> pd.DataFrame:
             "winner": out["model_label"],
             "true_exceed": out["true_exceed_rate"].map(lambda x: f"{x:.3f}"),
             "false_safe": out["false_safe_rate"].map(lambda x: f"{x:.4f}"),
+            "false_safe_U95": out["false_safe_ci95_hi"].map(lambda x: f"{x:.4f}"),
             "beta_FS": out["beta_false_safe"].map(lambda x: f"{x:.2f}"),
+            "beta_FS_cons": out["beta_false_safe_cons"].map(lambda x: f"{x:.2f}"),
             "false_unsafe": out["false_unsafe_rate"].map(lambda x: f"{x:.4f}"),
             "expected_loss": out["expected_loss"].map(lambda x: f"{x:.3f}"),
         }
@@ -350,6 +374,7 @@ def build_table4() -> pd.DataFrame:
 
 def compute_reliability_detail(traces: pd.DataFrame) -> pd.DataFrame:
     rows = []
+    rng = np.random.default_rng(BOOTSTRAP_SEED)
     data = traces[(traces["N"].eq(N_TARGET)) & (traces["split"].eq("test"))].copy()
     for (protocol, model), g in data.groupby(["protocol", "model"]):
         for thr in THRESHOLDS:
@@ -370,6 +395,8 @@ def compute_reliability_detail(traces: pd.DataFrame) -> pd.DataFrame:
                 )
             ev = pd.DataFrame(event_rows)
             false_safe_rate = float(ev["event_false_safe_rate"].mean())
+            fs_lo, fs_hi = bootstrap_mean_ci(ev["event_false_safe_rate"].to_numpy(float), rng)
+            fu_lo, fu_hi = bootstrap_mean_ci(ev["event_false_unsafe_rate"].to_numpy(float), rng)
             rows.append(
                 {
                     "protocol": protocol,
@@ -379,13 +406,53 @@ def compute_reliability_detail(traces: pd.DataFrame) -> pd.DataFrame:
                     "event_count": int(ev["event_id"].nunique()),
                     "true_exceed_rate": float(ev["event_true_exceed_rate"].mean()),
                     "false_safe_rate": false_safe_rate,
+                    "false_safe_ci95_lo": fs_lo,
+                    "false_safe_ci95_hi": fs_hi,
                     "beta_false_safe": beta_false_safe(false_safe_rate),
+                    "beta_false_safe_cons": beta_false_safe(fs_hi),
                     "false_unsafe_rate": float(ev["event_false_unsafe_rate"].mean()),
+                    "false_unsafe_ci95_lo": fu_lo,
+                    "false_unsafe_ci95_hi": fu_hi,
                     "worst_event_false_safe_rate": float(ev["event_false_safe_rate"].max()),
                     "p90_event_false_safe_rate": float(ev["event_false_safe_rate"].quantile(0.90)),
                 }
             )
     return pd.DataFrame(rows)
+
+
+def build_table5_residual_variance(traces: pd.DataFrame) -> pd.DataFrame:
+    """Decompose signed residual variance into event-mean and within-event components."""
+    data = traces[(traces["N"].eq(N_TARGET)) & (traces["split"].eq("test"))].copy()
+    data["signed_residual_log"] = data["y_true_log"].astype(float) - data["y_pred_log"].astype(float)
+    rows = []
+    for (protocol, model), g in data.groupby(["protocol", "model"]):
+        ev = (
+            g.groupby("event_id")
+            .agg(
+                event_mean_residual=("signed_residual_log", "mean"),
+                event_size=("signed_residual_log", "size"),
+                event_rmse=("signed_residual_log", lambda x: float(np.sqrt(np.mean(np.square(x))))),
+                event_within_var=("signed_residual_log", lambda x: float(np.var(x, ddof=1)) if len(x) > 1 else 0.0),
+            )
+            .reset_index()
+        )
+        between = float(np.var(ev["event_mean_residual"], ddof=1)) if len(ev) > 1 else 0.0
+        within = float(ev["event_within_var"].mean())
+        total = between + within
+        rows.append(
+            {
+                "protocol": protocol,
+                "model": model,
+                "model_label": MODEL_LABELS.get(model, model),
+                "event_count": int(ev["event_id"].nunique()),
+                "between_event_residual_var": between,
+                "within_event_residual_var": within,
+                "between_event_share": between / total if total > 0 else np.nan,
+                "p90_abs_event_mean_residual": float(ev["event_mean_residual"].abs().quantile(0.90)),
+                "mean_event_rmse": float(ev["event_rmse"].mean()),
+            }
+        )
+    return pd.DataFrame(rows).sort_values(["protocol", "between_event_share", "model_label"], ascending=[True, False, True])
 
 
 def pareto_mask(df: pd.DataFrame) -> pd.Series:
@@ -417,6 +484,15 @@ def draw_reliability_figure(reliability: pd.DataFrame, detail: pd.DataFrame) -> 
         sub = reliability[reliability["protocol"].eq(protocol) & reliability["model"].isin(selected)].copy()
         for model, g in sub.groupby("model"):
             g = g.sort_values("threshold_idr")
+            if "beta_false_safe_cons" in g:
+                ax.fill_between(
+                    100 * g["threshold_idr"],
+                    g["beta_false_safe_cons"],
+                    g["beta_false_safe"],
+                    color=PALETTE.get(model, "#777777"),
+                    alpha=0.075,
+                    linewidth=0,
+                )
             ax.plot(
                 100 * g["threshold_idr"],
                 g["beta_false_safe"],
@@ -491,7 +567,7 @@ def draw_reliability_figure(reliability: pd.DataFrame, detail: pd.DataFrame) -> 
     fig.text(
         0.02,
         0.954,
-        r"$\beta_{FS}=-\Phi^{-1}(P_{FS})$ converts false-safe probability into a reliability-style scale; higher values imply fewer unsafe cases predicted safe.",
+        r"$\beta_{FS}=-\Phi^{-1}(P_{FS})$ converts false-safe probability into a reliability-style scale; faint bands use event-bootstrap upper 95% false-safe bounds.",
         ha="left",
         fontsize=6.6,
         color="#444444",
@@ -507,7 +583,13 @@ def draw_reliability_figure(reliability: pd.DataFrame, detail: pd.DataFrame) -> 
     plt.close(fig)
 
 
-def write_report(table1: pd.DataFrame, table3: pd.DataFrame, table4: pd.DataFrame, reliability: pd.DataFrame) -> None:
+def write_report(
+    table1: pd.DataFrame,
+    table3: pd.DataFrame,
+    table4: pd.DataFrame,
+    table5: pd.DataFrame,
+    reliability: pd.DataFrame,
+) -> None:
     lines = [
         "# R24 Structural Safety tables and false-safe reliability index",
         "",
@@ -527,6 +609,10 @@ def write_report(table1: pd.DataFrame, table3: pd.DataFrame, table4: pd.DataFram
         "",
         table4.to_markdown(index=False),
         "",
+        "## Event-level residual variance decomposition",
+        "",
+        table5.to_markdown(index=False),
+        "",
         "## False-safe reliability winners by protocol at 1% IDR",
         "",
         "| protocol | highest beta_FS model | beta_FS | false-safe | false-unsafe |",
@@ -544,7 +630,7 @@ def write_report(table1: pd.DataFrame, table3: pd.DataFrame, table4: pd.DataFram
             "",
             "## Boundary",
             "",
-            "The reliability index is an empirical diagnostic for screening-rule false-safe probability, not a replacement for component/system-level code calibration or PBEE/FEMA P-58 loss assessment.",
+            "The reliability index is an empirical diagnostic for screening-rule false-safe probability, not a replacement for component/system-level code calibration or PBEE/FEMA P-58 loss assessment. Because the rates are event-equal and clustered, the conservative beta_FS column uses an event-bootstrap upper 95% false-safe bound rather than an independent Bernoulli assumption.",
             "",
             "## Generated files",
             "",
@@ -556,7 +642,13 @@ def write_report(table1: pd.DataFrame, table3: pd.DataFrame, table4: pd.DataFram
     (OUT / "R24_STRUCTURAL_SAFETY_TABLES_AND_RELIABILITY_REPORT.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_all_latex_fragments(table1: pd.DataFrame, table2: pd.DataFrame, table3: pd.DataFrame, table4: pd.DataFrame) -> None:
+def write_all_latex_fragments(
+    table1: pd.DataFrame,
+    table2: pd.DataFrame,
+    table3: pd.DataFrame,
+    table4: pd.DataFrame,
+    table5: pd.DataFrame,
+) -> None:
     LATEX.mkdir(parents=True, exist_ok=True)
     rows1 = [
         [
@@ -625,7 +717,9 @@ def write_all_latex_fragments(table1: pd.DataFrame, table2: pd.DataFrame, table3
             r["winner"],
             r["true_exceed"],
             r["false_safe"],
+            r["false_safe_U95"],
             r["beta_FS"],
+            r["beta_FS_cons"],
             r["false_unsafe"],
             r["expected_loss"],
         ]
@@ -633,11 +727,35 @@ def write_all_latex_fragments(table1: pd.DataFrame, table2: pd.DataFrame, table3
     ]
     write_latex_table(
         LATEX / "table4_decision_reliability.tex",
-        "Decision-risk winners and false-safe reliability index at the 1% IDR threshold.",
+        "Decision-risk winners and false-safe reliability index at the 1% IDR threshold. U95 is the event-bootstrap upper 95% bound for event-equal false-safe probability; beta cons uses that upper bound.",
         "tab:decision_reliability",
-        ["Protocol", "C", "Winner", "True exceed", "False-safe", "beta_FS", "False-unsafe", "Loss"],
+        ["Protocol", "C", "Winner", "True exceed", "False-safe", "U95", "beta FS", "beta cons", "False-unsafe", "Loss"],
         rows4,
-        "llcccccc",
+        "llcccccccc",
+    )
+
+    selected5 = table5[
+        table5["model_label"].isin(["XGB direct", "LGBM direct", "Ridge direct", "MLP scratch", "MLP finetune"])
+    ].copy()
+    rows5 = [
+        [
+            r["protocol"],
+            r["model_label"],
+            f"{r['between_event_residual_var']:.4f}",
+            f"{r['within_event_residual_var']:.4f}",
+            f"{100*r['between_event_share']:.1f}",
+            f"{r['p90_abs_event_mean_residual']:.3f}",
+            f"{r['mean_event_rmse']:.3f}",
+        ]
+        for _, r in selected5.iterrows()
+    ]
+    write_latex_table(
+        LATEX / "table5_variance_decomposition.tex",
+        "Event-level residual variance decomposition. Between-event variance is the variance of event-mean signed residuals; within-event variance is averaged event-wise, matching the event-equal aggregation used elsewhere.",
+        "tab:variance_decomposition",
+        ["Protocol", "Model", "Between var", "Within var", "Between share (%)", "P90 |event mean|", "Mean event RMSE"],
+        rows5,
+        "llccccc",
     )
 
 
@@ -650,18 +768,20 @@ def main() -> None:
     table1 = build_table1(traces)
     table2 = build_table2()
     table3 = build_table3()
-    table4 = build_table4()
     reliability = compute_reliability_detail(traces)
+    table4 = build_table4(reliability)
+    table5 = build_table5_residual_variance(traces)
 
     table1.to_csv(OUT / "table1_protocol_summary.csv", index=False)
     table2.to_csv(OUT / "table2_model_settings.csv", index=False)
     table3.to_csv(OUT / "table3_metric_summary.csv", index=False)
     table4.to_csv(OUT / "table4_decision_reliability_summary.csv", index=False)
+    table5.to_csv(OUT / "table5_residual_variance_decomposition.csv", index=False)
     reliability.to_csv(OUT / "false_safe_reliability_detail.csv", index=False)
 
     draw_reliability_figure(reliability, pd.read_csv(R22_DETAIL))
-    write_all_latex_fragments(table1, table2, table3, table4)
-    write_report(table1, table3, table4, reliability)
+    write_all_latex_fragments(table1, table2, table3, table4, table5)
+    write_report(table1, table3, table4, table5, reliability)
 
     # Copy the new display figure into the flat LaTeX source folder.
     for suffix in [".pdf", ".png", ".svg"]:

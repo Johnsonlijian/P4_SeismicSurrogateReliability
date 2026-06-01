@@ -1,9 +1,9 @@
-protocol,IDR_threshold,false_safe_cost,winner,true_exceed,false_safe,beta_FS,false_unsafe,expected_loss
-event-disjoint target,1.0%,1,XGB direct,0.018,0.0047,2.60,0.0166,0.021
-event-disjoint target,1.0%,10,LGBM direct,0.018,0.0031,2.73,0.0202,0.051
-event-disjoint target,1.0%,50,LGBM direct,0.018,0.0031,2.73,0.0202,0.177
-event-disjoint target,1.0%,100,Ridge direct,0.018,0.0016,2.95,0.1155,0.273
-main event-held-out,1.0%,1,XGB direct,0.034,0.0031,2.73,0.0335,0.037
-main event-held-out,1.0%,10,LGBM direct,0.034,0.0021,2.86,0.0397,0.061
-main event-held-out,1.0%,50,LGBM direct,0.034,0.0021,2.86,0.0397,0.147
-main event-held-out,1.0%,100,MLP scratch,0.034,0.0015,2.98,0.0796,0.225
+protocol,IDR_threshold,false_safe_cost,winner,true_exceed,false_safe,false_safe_U95,beta_FS,beta_FS_cons,false_unsafe,expected_loss
+event-disjoint target,1.0%,1,XGB direct,0.018,0.0047,0.0109,2.60,2.29,0.0166,0.021
+event-disjoint target,1.0%,10,LGBM direct,0.018,0.0031,0.0072,2.73,2.45,0.0202,0.051
+event-disjoint target,1.0%,50,LGBM direct,0.018,0.0031,0.0072,2.73,2.45,0.0202,0.177
+event-disjoint target,1.0%,100,Ridge direct,0.018,0.0016,0.0042,2.95,2.64,0.1155,0.273
+main event-held-out,1.0%,1,XGB direct,0.034,0.0031,0.0062,2.73,2.50,0.0335,0.037
+main event-held-out,1.0%,10,LGBM direct,0.034,0.0021,0.0047,2.86,2.60,0.0397,0.061
+main event-held-out,1.0%,50,LGBM direct,0.034,0.0021,0.0047,2.86,2.60,0.0397,0.147
+main event-held-out,1.0%,100,MLP scratch,0.034,0.0015,0.0028,2.98,2.77,0.0796,0.225

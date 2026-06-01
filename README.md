@@ -23,3 +23,8 @@ python scripts/rebuild_decision_risk_sensitivity.py
 ## Data boundary
 
 The CSV files in `outputs/high_target/` are derived residual traces and derived decision-risk tables used to reproduce the figures. Raw third-party ground-motion records and source simulation inputs are not redistributed.
+
+## R24 reliability-index extension
+
+The repository now includes the R24 Structural Safety reproducibility increment: derived protocol/model/metric tables, a false-safe reliability-index figure, and verified reference metadata notes. Active submission manuscripts and PDFs remain excluded.
+

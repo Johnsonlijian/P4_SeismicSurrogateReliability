@@ -1,4 +1,4 @@
-"""R24 Structural Safety tables and false-safe reliability index.
+﻿"""R24 Structural Safety tables and false-safe reliability index.
 
 This script turns the residual-trace outputs into manuscript-ready evidence:
 
@@ -645,7 +645,7 @@ def draw_gate_figure(reliability: pd.DataFrame, beta_target: float = GATE_BETA_T
         ax.set_xticks([0.5, 1.0, 2.0, 4.0])
         ax.set_xticklabels(["0.5", "1", "2", "4"])
         ax.set_xlabel("IDR threshold (%)")
-        ax.set_ylabel(r"Conservative gate index, $\beta_{FS,cons}$")
+        ax.set_ylabel(r"Conservative filter index, $\beta_{FS,cons}$")
         ax.set_title(protocol, loc="left", fontweight="bold")
         ax.grid(axis="y", color="#dddddd", lw=0.6)
         ax.set_ylim(1.55, 5.0)
@@ -693,18 +693,18 @@ def draw_gate_figure(reliability: pd.DataFrame, beta_target: float = GATE_BETA_T
         ax.set_xlabel("IDR threshold")
         ax.set_ylabel("False-safe cost ratio")
         short_protocol = "event-disjoint" if protocol == "event-disjoint target" else "main"
-        ax.set_title(f"{short_protocol}: loss winner + gate", loc="left", fontweight="bold")
+        ax.set_title(f"{short_protocol}: loss winner + filter", loc="left", fontweight="bold")
         ax.text(
             0.01,
             -0.18,
-            rf"hatching = winner fails illustrative $\beta^*={beta_target:.1f}$ gate",
+            rf"hatching = winner fails illustrative $\beta^*={beta_target:.1f}$ filter",
             transform=ax.transAxes,
             fontsize=5.7,
             color="#444444",
         )
 
     fig.suptitle(
-        "False-safe reliability gate and constrained decision surface",
+        "False-safe reliability filter and constrained decision surface",
         x=0.02,
         y=0.99,
         ha="left",
@@ -714,7 +714,7 @@ def draw_gate_figure(reliability: pd.DataFrame, beta_target: float = GATE_BETA_T
     fig.text(
         0.02,
         0.955,
-        r"The gate uses $\beta_{FS,cons}=-\Phi^{-1}(P_{FS}^{U95})$; target lines are illustrative diagnostic thresholds, not code targets.",
+        r"The filter uses $\beta_{FS,cons}=-\Phi^{-1}(P_{FS}^{U95})$; target lines are illustrative diagnostic thresholds, not code targets.",
         ha="left",
         fontsize=6.5,
         color="#444444",
@@ -761,7 +761,7 @@ def write_report(
         "",
         table5.to_markdown(index=False),
         "",
-        "## False-safe gate decision summary",
+        "## False-safe filter decision summary",
         "",
         table6.to_markdown(index=False),
         "",
@@ -928,9 +928,9 @@ def write_all_latex_fragments(
     ]
     write_latex_table(
         LATEX / "table6_gate_summary.tex",
-        "False-safe reliability gate summary at the 1% IDR threshold. The beta target is an illustrative diagnostic gate, not a code-calibrated target reliability.",
+        "False-safe reliability filter summary at the 1% IDR threshold. The beta target is an illustrative diagnostic filter, not a code-calibrated target reliability.",
         "tab:gate_summary",
-        ["Protocol", "Model", "Threshold", "P_FS", "U95", "beta FS", "beta cons", "beta target", "Gate", "Action"],
+        ["Protocol", "Model", "Threshold", "P_FS", "U95", "beta FS", "beta cons", "beta target", "Filter", "Action"],
         rows6,
         "llcccccccp{0.24\\textwidth}",
     )
@@ -980,3 +980,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

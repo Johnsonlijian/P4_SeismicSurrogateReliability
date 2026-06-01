@@ -1,4 +1,4 @@
-# R28 true event-disjoint gate stability
+# R28 true event-disjoint filter stability
 
 Date: 2026-06-01
 

@@ -28,3 +28,9 @@ The CSV files in `outputs/high_target/` are derived residual traces and derived 
 
 The repository now includes the R24 Structural Safety reproducibility increment: derived protocol/model/metric tables, a false-safe reliability-index figure, and verified reference metadata notes. Active submission manuscripts and PDFs remain excluded.
 
+
+## Repository scope
+
+This repository contains reproducibility materials only: code, configuration, derived tables, generated figures, runbooks, source registries, and citation metadata needed to reproduce the reported computational results. It intentionally excludes active manuscript drafts, journal source files, cover letters, private review rounds, raw third-party archives, credentials, and materials whose redistribution rights are unclear.
+
+The R28 large-budget event-disjoint prediction export contains 796,080 regenerated prediction rows locally; because of size and redistribution boundaries, the public repository provides the generation scripts, aggregate summaries, derived figures, and reproducibility runbook rather than using the repository as an active submission manuscript archive.

@@ -1,4 +1,4 @@
-﻿"""R28 false-safe gate stability from true event-disjoint N=1000/2000 exports."""
+﻿"""R28 false-safe filter stability from true event-disjoint N=1000/2000 exports."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -158,13 +158,13 @@ def write_latex(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> 
             f"{100*r['p_false_safe_median']:.2f} & {100*r['p_false_unsafe_median']:.1f} & {r['gate']} \\\\"
         )
     table7 = """\\begin{table}[t]
-\\caption{True event-disjoint target-label-budget stability of the false-safe gate at the 1\\% IDR threshold. N=1000 and N=2000 are regenerated prediction exports rather than extrapolations from the N=500 trace.}
+\\caption{True event-disjoint target-label-budget stability of the false-safe filter at the 1\\% IDR threshold. N=1000 and N=2000 are regenerated prediction exports rather than extrapolations from the N=500 trace.}
 \\label{tab:label_budget_gate_stability}
 \\centering
 \\scriptsize
 \\begin{tabular}{lrrrrl}
 \\toprule
-Model & N & $\\beta_{FS,cons}$ & $P_{FS}$ (\\%) & $P_{FU}$ (\\%) & Gate \\\\
+Model & N & $\\beta_{FS,cons}$ & $P_{FS}$ (\\%) & $P_{FU}$ (\\%) & Filter \\\\
 \\midrule
 """ + "\n".join(rows) + """
 \\bottomrule
@@ -183,13 +183,13 @@ Model & N & $\\beta_{FS,cons}$ & $P_{FS}$ (\\%) & $P_{FU}$ (\\%) & Gate \\\\
             f"{100*r['p_false_unsafe_median']:.1f} & {r['gate']} \\\\"
         )
     table8 = """\\begin{table}[t]
-\\caption{Interval-widening sensitivity at N=2000 under event-disjoint testing. Wider conformal intervals can recover false-safe gate eligibility, but they increase false-unsafe screening burden.}
+\\caption{Interval-widening sensitivity at N=2000 under event-disjoint testing. Wider conformal intervals can recover false-safe filter eligibility, but they increase false-unsafe screening burden.}
 \\label{tab:interval_widening_sensitivity}
 \\centering
 \\small
 \\begin{tabular}{lrrrrrrl}
 \\toprule
-Model & N & Level & $q$ & $\\beta_{FS,cons}$ & $P_{FS}$ (\\%) & $P_{FU}$ (\\%) & Gate \\\\
+Model & N & Level & $q$ & $\\beta_{FS,cons}$ & $P_{FS}$ (\\%) & $P_{FU}$ (\\%) & Filter \\\\
 \\midrule
 """ + "\n".join(rows) + """
 \\bottomrule
@@ -235,10 +235,10 @@ def draw_figure(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> 
         ax.xaxis.set_minor_locator(mpl.ticker.NullLocator())
         ax.grid(True, color="#e6e6e6", linewidth=0.6)
     ax1.axhline(BETA_TARGET, color="#222222", lw=1.0, ls="--")
-    ax1.text(55, BETA_TARGET + 0.05, r"gate target $\beta^*=2.5$", fontsize=7.2)
-    ax1.set_title("a  True budget gate stability")
+    ax1.text(55, BETA_TARGET + 0.05, r"filter target $\beta^*=2.5$", fontsize=7.2)
+    ax1.set_title("a  True budget filter stability")
     ax1.set_xlabel("Target labels N")
-    ax1.set_ylabel(r"Conservative gate index, $\beta_{FS,cons}$")
+    ax1.set_ylabel(r"Conservative filter index, $\beta_{FS,cons}$")
     ax1.legend(frameon=False, ncol=1, loc="lower right")
     ax2.set_title("b  False-unsafe burden")
     ax2.set_xlabel("Target labels N")
@@ -248,7 +248,7 @@ def draw_figure(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> 
     order = [MODEL_LABELS[m] for m in MODELS]
     heat = heat.loc[order, BUDGETS]
     im = ax3.imshow(heat.to_numpy(), cmap="RdYlBu", vmin=1.7, vmax=3.2, aspect="auto")
-    ax3.set_title("c  Gate eligibility map")
+    ax3.set_title("c  Filter eligibility map")
     ax3.set_xticks(range(len(BUDGETS)), [str(n) for n in BUDGETS], rotation=30, ha="right")
     ax3.set_yticks(range(len(order)), order)
     ax3.set_xlabel("Target labels N")
@@ -268,7 +268,7 @@ def draw_figure(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> 
     ax4.set_xticks(INTERVAL_LEVELS, ["0.90", "0.95", "0.975"])
     ax4.grid(True, color="#e6e6e6", linewidth=0.6)
 
-    fig.suptitle("True event-disjoint false-safe gate stability at the 1% IDR threshold", x=0.08, ha="left", fontsize=11, fontweight="bold")
+    fig.suptitle("True event-disjoint false-safe filter stability at the 1% IDR threshold", x=0.08, ha="left", fontsize=11, fontweight="bold")
     base = FIGOUT / "fig_r28_true_budget_gate_sensitivity"
     for ext, dpi in [("pdf", None), ("svg", None), ("png", 450), ("tiff", 600)]:
         fig.savefig(base.with_suffix(f".{ext}"), dpi=dpi, bbox_inches="tight")
@@ -280,7 +280,7 @@ def draw_figure(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> 
 def write_report(label_summary: pd.DataFrame, interval_summary: pd.DataFrame) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     lines = [
-        "# R28 true event-disjoint gate stability",
+        "# R28 true event-disjoint filter stability",
         "",
         "Date: 2026-06-01",
         "",

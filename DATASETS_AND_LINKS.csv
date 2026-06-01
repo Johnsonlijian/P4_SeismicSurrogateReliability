@@ -1,0 +1,4 @@
+﻿name,type,redistribution_status,location_or_url,notes
+Derived full residual trace,derived csv,redistributed in repository,outputs/high_target/r21_full_residual_trace/residual_trace_samples.csv,Derived residual samples used for manuscript figures
+Derived event-disjoint residual trace,derived csv,redistributed in repository,outputs/high_target/event_disjoint_conformal_stress/event_disjoint_residual_samples.csv,Derived residual samples used for manuscript figures
+Raw ground-motion/source simulation data,raw third-party or source data,not redistributed,see manuscript data availability,Redistribution rights are not asserted in this public package

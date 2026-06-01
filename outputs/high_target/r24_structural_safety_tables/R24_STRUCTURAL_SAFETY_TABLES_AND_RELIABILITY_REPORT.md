@@ -62,6 +62,21 @@ The analysis upgrades the manuscript from a metric-comparison note to a reliabil
 | main event-held-out   | pretrained_finetune | MLP finetune  |            14 |                   0.0114361  |                   0.0251105 |              0.312919 |                      0.158069 |          0.182354 |
 | main event-held-out   | scratch_mlp         | MLP scratch   |            14 |                   0.00775538 |                   0.0251805 |              0.235469 |                      0.164336 |          0.182985 |
 
+## False-safe gate decision summary
+
+| protocol              | model_label   |   threshold_idr |   false_safe_rate |   false_safe_ci95_hi |   beta_false_safe |   beta_false_safe_cons |   gate_target_beta | gate_status   | action                                               |
+|:----------------------|:--------------|----------------:|------------------:|---------------------:|------------------:|-----------------------:|-------------------:|:--------------|:-----------------------------------------------------|
+| event-disjoint target | Ridge direct  |            0.01 |        0.00157722 |           0.00415874 |           2.95227 |                2.6389  |                2.5 | Pass          | eligible; select by loss/PFU                         |
+| event-disjoint target | LGBM direct   |            0.01 |        0.00312726 |           0.00724185 |           2.73413 |                2.44504 |                2.5 | Fail          | collect labels, widen interval, or use NTHA fallback |
+| event-disjoint target | MLP finetune  |            0.01 |        0.00420686 |           0.00840183 |           2.635   |                2.39098 |                2.5 | Fail          | collect labels, widen interval, or use NTHA fallback |
+| event-disjoint target | XGB direct    |            0.01 |        0.00471411 |           0.0108865  |           2.59612 |                2.2943  |                2.5 | Fail          | collect labels, widen interval, or use NTHA fallback |
+| event-disjoint target | MLP scratch   |            0.01 |        0.00609658 |           0.0178935  |           2.5065  |                2.09934 |                2.5 | Fail          | collect labels, widen interval, or use NTHA fallback |
+| main event-held-out   | MLP scratch   |            0.01 |        0.00145524 |           0.00282931 |           2.97704 |                2.76693 |                2.5 | Pass          | eligible; select by loss/PFU                         |
+| main event-held-out   | LGBM direct   |            0.01 |        0.00214868 |           0.00467116 |           2.85547 |                2.59927 |                2.5 | Pass          | eligible; select by loss/PFU                         |
+| main event-held-out   | Ridge direct  |            0.01 |        0.00194077 |           0.00518648 |           2.88763 |                2.56314 |                2.5 | Pass          | eligible; select by loss/PFU                         |
+| main event-held-out   | XGB direct    |            0.01 |        0.00313875 |           0.00617257 |           2.73292 |                2.50212 |                2.5 | Pass          | eligible; select by loss/PFU                         |
+| main event-held-out   | MLP finetune  |            0.01 |        0.0027536  |           0.00635469 |           2.77576 |                2.49181 |                2.5 | Fail          | collect labels, widen interval, or use NTHA fallback |
+
 ## False-safe reliability winners by protocol at 1% IDR
 
 | protocol | highest beta_FS model | beta_FS | false-safe | false-unsafe |

@@ -1,0 +1,11 @@
+protocol,model_label,threshold_idr,false_safe_rate,false_safe_ci95_hi,beta_false_safe,beta_false_safe_cons,gate_target_beta,gate_status,action
+event-disjoint target,Ridge direct,0.01,0.0015772192028985508,0.004158740942028985,2.9522730654587623,2.6389028246731234,2.5,Pass,eligible; select by loss/PFU
+event-disjoint target,LGBM direct,0.01,0.003127264492753623,0.007241847826086956,2.7341302912406475,2.445037811042834,2.5,Fail,"collect labels, widen interval, or use NTHA fallback"
+event-disjoint target,MLP finetune,0.01,0.004206861413043479,0.008401834239130435,2.6350002214520996,2.390975624038992,2.5,Fail,"collect labels, widen interval, or use NTHA fallback"
+event-disjoint target,XGB direct,0.01,0.004714107789855072,0.010886548913043479,2.5961235527726787,2.294303044515658,2.5,Fail,"collect labels, widen interval, or use NTHA fallback"
+event-disjoint target,MLP scratch,0.01,0.006096580615942029,0.01789345561594203,2.5065041906219263,2.0993403234138683,2.5,Fail,"collect labels, widen interval, or use NTHA fallback"
+main event-held-out,MLP scratch,0.01,0.0014552411873840446,0.002829313543599257,2.977037679824194,2.766933648087875,2.5,Pass,eligible; select by loss/PFU
+main event-held-out,LGBM direct,0.01,0.0021486846486846486,0.004671162171162172,2.8554662279700826,2.5992663872765767,2.5,Pass,eligible; select by loss/PFU
+main event-held-out,Ridge direct,0.01,0.0019407675657675658,0.005186480186480187,2.8876321528821913,2.5631420354539993,2.5,Pass,eligible; select by loss/PFU
+main event-held-out,XGB direct,0.01,0.0031387511298225585,0.006172573706055851,2.732922913236835,2.502121717790196,2.5,Pass,eligible; select by loss/PFU
+main event-held-out,MLP finetune,0.01,0.0027536005661005663,0.00635468697968698,2.775764924497359,2.491810740177303,2.5,Fail,"collect labels, widen interval, or use NTHA fallback"

@@ -22,6 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.patches import Rectangle
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +50,7 @@ COSTS = [1, 10, 50, 100]
 NORMAL = NormalDist()
 BOOTSTRAP_REPS = 3000
 BOOTSTRAP_SEED = 20260601
+GATE_BETA_TARGET = 2.5
 
 MODEL_LABELS = {
     "xgb_direct": "XGB direct",
@@ -455,6 +457,35 @@ def build_table5_residual_variance(traces: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values(["protocol", "between_event_share", "model_label"], ascending=[True, False, True])
 
 
+def build_table6_gate_summary(reliability: pd.DataFrame, beta_target: float = GATE_BETA_TARGET) -> pd.DataFrame:
+    focus_models = ["xgb_direct", "lgbm_direct", "ridge_direct", "pretrained_finetune", "scratch_mlp"]
+    focus = reliability[
+        reliability["threshold_idr"].eq(0.01) & reliability["model"].isin(focus_models)
+    ].copy()
+    focus["gate_target_beta"] = beta_target
+    focus["gate_status"] = np.where(focus["beta_false_safe_cons"] >= beta_target, "Pass", "Fail")
+    focus["action"] = np.where(
+        focus["gate_status"].eq("Pass"),
+        "eligible; select by loss/PFU",
+        "collect labels, widen interval, or use NTHA fallback",
+    )
+    focus = focus.sort_values(["protocol", "beta_false_safe_cons"], ascending=[True, False])
+    return focus[
+        [
+            "protocol",
+            "model_label",
+            "threshold_idr",
+            "false_safe_rate",
+            "false_safe_ci95_hi",
+            "beta_false_safe",
+            "beta_false_safe_cons",
+            "gate_target_beta",
+            "gate_status",
+            "action",
+        ]
+    ]
+
+
 def pareto_mask(df: pd.DataFrame) -> pd.Series:
     """Return True for non-dominated points: higher beta and lower false-unsafe."""
     vals = df[["beta_false_safe", "false_unsafe_rate"]].to_numpy(float)
@@ -583,11 +614,128 @@ def draw_reliability_figure(reliability: pd.DataFrame, detail: pd.DataFrame) -> 
     plt.close(fig)
 
 
+def draw_gate_figure(reliability: pd.DataFrame, beta_target: float = GATE_BETA_TARGET) -> None:
+    selected = ["xgb_direct", "lgbm_direct", "ridge_direct", "pretrained_finetune", "scratch_mlp"]
+    winners = pd.read_csv(R22_WINNERS)
+    rel_gate = reliability[["protocol", "model_label", "threshold_idr", "beta_false_safe_cons"]].copy()
+    winners = winners.merge(rel_gate, on=["protocol", "model_label", "threshold_idr"], how="left")
+    winners["gate_pass"] = winners["beta_false_safe_cons"] >= beta_target
+
+    fig = plt.figure(figsize=(7.4, 6.35))
+    gs = fig.add_gridspec(2, 2, hspace=0.46, wspace=0.46)
+    axes = [fig.add_subplot(gs[i, j]) for i in range(2) for j in range(2)]
+
+    for ax, protocol in zip(axes[:2], ["event-disjoint target", "main event-held-out"]):
+        sub = reliability[reliability["protocol"].eq(protocol) & reliability["model"].isin(selected)].copy()
+        for model, g in sub.groupby("model"):
+            g = g.sort_values("threshold_idr")
+            ax.plot(
+                100 * g["threshold_idr"],
+                g["beta_false_safe_cons"],
+                "-o",
+                lw=1.25,
+                ms=3.0,
+                color=PALETTE.get(model, "#777777"),
+                label=MODEL_SHORT.get(model, model),
+            )
+        for beta, style, alpha in [(2.0, ":", 0.55), (2.5, "--", 0.75), (3.0, "-.", 0.55)]:
+            ax.axhline(beta, color="#444444", lw=0.75, ls=style, alpha=alpha)
+            ax.text(4.15, beta + 0.02, rf"$\beta^*={beta:.1f}$", fontsize=5.6, va="bottom", color="#444444")
+        ax.set_xscale("log")
+        ax.set_xticks([0.5, 1.0, 2.0, 4.0])
+        ax.set_xticklabels(["0.5", "1", "2", "4"])
+        ax.set_xlabel("IDR threshold (%)")
+        ax.set_ylabel(r"Conservative gate index, $\beta_{FS,cons}$")
+        ax.set_title(protocol, loc="left", fontweight="bold")
+        ax.grid(axis="y", color="#dddddd", lw=0.6)
+        ax.set_ylim(1.55, 5.0)
+    axes[0].legend(ncol=3, loc="lower right", fontsize=5.7)
+
+    thresholds = sorted(winners["threshold_idr"].dropna().unique())
+    costs = sorted(winners["cost_ratio_false_safe"].dropna().unique())
+    cmap_models = {
+        "XGB direct": "#4C78A8",
+        "LGBM direct": "#F58518",
+        "HGB direct": "#54A24B",
+        "Ridge direct": "#6B6B6B",
+        "MLP finetune": "#72B7B2",
+        "MLP scratch": "#D62728",
+    }
+    for ax, protocol in zip(axes[2:], ["event-disjoint target", "main event-held-out"]):
+        sub = winners[winners["protocol"].eq(protocol)].copy()
+        for i, cost in enumerate(costs):
+            for j, thr in enumerate(thresholds):
+                cell = sub[sub["cost_ratio_false_safe"].eq(cost) & sub["threshold_idr"].eq(thr)]
+                if cell.empty:
+                    continue
+                r = cell.iloc[0]
+                color = cmap_models.get(str(r["model_label"]), "#CCCCCC")
+                rect = Rectangle((j - 0.5, i - 0.5), 1, 1, facecolor=color, alpha=0.82, edgecolor="white", lw=0.8)
+                ax.add_patch(rect)
+                if not bool(r["gate_pass"]):
+                    hatch = Rectangle((j - 0.5, i - 0.5), 1, 1, facecolor="none", edgecolor="#222222", hatch="////", lw=0.0)
+                    ax.add_patch(hatch)
+                ax.text(
+                    j,
+                    i,
+                    f"{MODEL_SHORT.get(str(r['model']), str(r['model_label']).split()[0])}\n{r['expected_loss']:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=5.4,
+                    color="white" if r["expected_loss"] > 0.10 else "#111111",
+                )
+        ax.set_xlim(-0.5, len(thresholds) - 0.5)
+        ax.set_ylim(len(costs) - 0.5, -0.5)
+        ax.set_xticks(range(len(thresholds)))
+        ax.set_xticklabels([f"{100*t:g}%" for t in thresholds], rotation=30, ha="right")
+        ax.set_yticks(range(len(costs)))
+        ax.set_yticklabels([str(int(c)) for c in costs])
+        ax.set_xlabel("IDR threshold")
+        ax.set_ylabel("False-safe cost ratio")
+        short_protocol = "event-disjoint" if protocol == "event-disjoint target" else "main"
+        ax.set_title(f"{short_protocol}: loss winner + gate", loc="left", fontweight="bold")
+        ax.text(
+            0.01,
+            -0.18,
+            rf"hatching = winner fails illustrative $\beta^*={beta_target:.1f}$ gate",
+            transform=ax.transAxes,
+            fontsize=5.7,
+            color="#444444",
+        )
+
+    fig.suptitle(
+        "False-safe reliability gate and constrained decision surface",
+        x=0.02,
+        y=0.99,
+        ha="left",
+        fontsize=9.4,
+        fontweight="bold",
+    )
+    fig.text(
+        0.02,
+        0.955,
+        r"The gate uses $\beta_{FS,cons}=-\Phi^{-1}(P_{FS}^{U95})$; target lines are illustrative diagnostic thresholds, not code targets.",
+        ha="left",
+        fontsize=6.5,
+        color="#444444",
+    )
+    for ax, letter in zip(axes, "abcd"):
+        ax.text(-0.14, 1.08, letter, transform=ax.transAxes, fontsize=10.5, fontweight="bold", ha="left", va="top")
+
+    base = FIG_DIR / "fig_r26_false_safe_reliability_gate"
+    fig.savefig(base.with_suffix(".svg"), bbox_inches="tight")
+    fig.savefig(base.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(base.with_suffix(".png"), dpi=600, bbox_inches="tight")
+    fig.savefig(base.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
+    plt.close(fig)
+
+
 def write_report(
     table1: pd.DataFrame,
     table3: pd.DataFrame,
     table4: pd.DataFrame,
     table5: pd.DataFrame,
+    table6: pd.DataFrame,
     reliability: pd.DataFrame,
 ) -> None:
     lines = [
@@ -612,6 +760,10 @@ def write_report(
         "## Event-level residual variance decomposition",
         "",
         table5.to_markdown(index=False),
+        "",
+        "## False-safe gate decision summary",
+        "",
+        table6.to_markdown(index=False),
         "",
         "## False-safe reliability winners by protocol at 1% IDR",
         "",
@@ -648,6 +800,7 @@ def write_all_latex_fragments(
     table3: pd.DataFrame,
     table4: pd.DataFrame,
     table5: pd.DataFrame,
+    table6: pd.DataFrame,
 ) -> None:
     LATEX.mkdir(parents=True, exist_ok=True)
     rows1 = [
@@ -758,6 +911,30 @@ def write_all_latex_fragments(
         "llccccc",
     )
 
+    rows6 = [
+        [
+            r["protocol"],
+            r["model_label"],
+            "1.0%",
+            f"{r['false_safe_rate']:.4f}",
+            f"{r['false_safe_ci95_hi']:.4f}",
+            f"{r['beta_false_safe']:.2f}",
+            f"{r['beta_false_safe_cons']:.2f}",
+            f"{r['gate_target_beta']:.1f}",
+            r["gate_status"],
+            r["action"],
+        ]
+        for _, r in table6.iterrows()
+    ]
+    write_latex_table(
+        LATEX / "table6_gate_summary.tex",
+        "False-safe reliability gate summary at the 1% IDR threshold. The beta target is an illustrative diagnostic gate, not a code-calibrated target reliability.",
+        "tab:gate_summary",
+        ["Protocol", "Model", "Threshold", "P_FS", "U95", "beta FS", "beta cons", "beta target", "Gate", "Action"],
+        rows6,
+        "llcccccccp{0.24\\textwidth}",
+    )
+
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
@@ -771,24 +948,31 @@ def main() -> None:
     reliability = compute_reliability_detail(traces)
     table4 = build_table4(reliability)
     table5 = build_table5_residual_variance(traces)
+    table6 = build_table6_gate_summary(reliability)
 
     table1.to_csv(OUT / "table1_protocol_summary.csv", index=False)
     table2.to_csv(OUT / "table2_model_settings.csv", index=False)
     table3.to_csv(OUT / "table3_metric_summary.csv", index=False)
     table4.to_csv(OUT / "table4_decision_reliability_summary.csv", index=False)
     table5.to_csv(OUT / "table5_residual_variance_decomposition.csv", index=False)
+    table6.to_csv(OUT / "table6_false_safe_gate_summary.csv", index=False)
     reliability.to_csv(OUT / "false_safe_reliability_detail.csv", index=False)
 
     draw_reliability_figure(reliability, pd.read_csv(R22_DETAIL))
-    write_all_latex_fragments(table1, table2, table3, table4, table5)
-    write_report(table1, table3, table4, table5, reliability)
+    draw_gate_figure(reliability)
+    write_all_latex_fragments(table1, table2, table3, table4, table5, table6)
+    write_report(table1, table3, table4, table5, table6, reliability)
 
     # Copy the new display figure into the flat LaTeX source folder.
     for suffix in [".pdf", ".png", ".svg"]:
-        src = FIG_DIR / f"fig_r24_false_safe_reliability_index{suffix}"
-        if src.exists():
-            dst = LATEX / f"Figure_5{suffix}"
-            dst.write_bytes(src.read_bytes())
+        for stem, fig_name in [
+            ("fig_r24_false_safe_reliability_index", "Figure_5"),
+            ("fig_r26_false_safe_reliability_gate", "Figure_6"),
+        ]:
+            src = FIG_DIR / f"{stem}{suffix}"
+            if src.exists():
+                dst = LATEX / f"{fig_name}{suffix}"
+                dst.write_bytes(src.read_bytes())
 
     print(f"[64] wrote R24 tables to {OUT}")
     print(f"[64] wrote figure to {FIG_DIR / 'fig_r24_false_safe_reliability_index.pdf'}")

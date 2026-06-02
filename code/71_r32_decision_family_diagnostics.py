@@ -269,7 +269,7 @@ def family_diagnostic():
     fig.text(0.14, 0.96, "Structural-family stratified stress diagnostic at 1.0% drift",
              ha="left", va="top", fontsize=13.2, fontweight="bold")
     fig.text(0.14, 0.905,
-             "True R28 event-disjoint N=2000 predictions are stratified by family; this is not leave-family-out retraining.",
+             "True event-disjoint N=2000 predictions are stratified by family; this is not leave-family-out retraining.",
              ha="left", va="top", fontsize=8.0, color="#333333")
     for i in range(len(MODEL_ORDER)):
         for j in range(len(families)):
@@ -294,11 +294,11 @@ def family_diagnostic():
 
 
 def write_report(decision_selected, family_summary, family_table):
-    report = f"""# R32 decision and structural-family diagnostic addendum
+    report = f"""# Final decision and structural-family diagnostic addendum
 
 ## Scope and evidence boundary
 
-This addendum uses existing, already generated evidence from the R22/R24 decision-risk and false-safe reliability tables and the R28 true event-disjoint N=2000 prediction export. It does not introduce simulated placeholder values, fabricated observations, or AI-generated numerical results.
+This addendum uses existing, already generated evidence from the decision-risk and false-safe reliability tables and the true event-disjoint N=2000 prediction export. It does not introduce simulated placeholder values, fabricated observations, or AI-generated numerical results.
 
 The structural-family analysis is a stratified diagnostic within the event-disjoint N=2000 stress test. It is not a true leave-family-out retraining experiment and should not be described as proof of extrapolation to unseen building inventories.
 
@@ -345,7 +345,7 @@ def write_supplement():
 \usepackage{siunitx}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
-\title{Supplementary R32: reliability--efficiency decision map and structural-family stratified diagnostic}
+\title{Supplementary material: reliability--efficiency decision map and structural-family stratified diagnostic}
 \author{Lijian REN}
 \date{June 2, 2026}
 \begin{document}
@@ -354,7 +354,7 @@ def write_supplement():
 \section*{Scope}
 This supplementary addendum supports the Structural Safety submission package by adding two final diagnostic views. The first maps reliability-constrained decision actions across drift thresholds and false-safe cost ratios. The second stratifies the already generated event-disjoint $N=2000$ prediction export by structural family at the 1.0\% drift threshold.
 
-All numerical values are derived from the existing R22/R24 decision-risk and false-safe reliability tables and the R28 event-disjoint prediction export. The structural-family analysis is a stratified stress diagnostic, not a leave-family-out retraining experiment and not a claim of general inventory-level extrapolation.
+All numerical values are derived from the existing decision-risk and false-safe reliability tables and the event-disjoint prediction export. The structural-family analysis is a stratified stress diagnostic, not a leave-family-out retraining experiment and not a claim of general inventory-level extrapolation.
 
 \section*{Reliability--efficiency decision map}
 Figure~\ref{fig:decision-map} selects the loss-minimizing action among models satisfying the conservative false-safe reliability criterion $\beta_{\mathrm{FS,cons}}\ge 2.5$. When no surrogate satisfies this diagnostic filter, the cell is assigned to nonlinear time-history analysis (NTHA) fallback. The contour lines and cell percentages report the approximate downstream workload routed onward rather than screened-safe.
@@ -372,7 +372,7 @@ Figure~\ref{fig:family-diagnostic} reports family-stratified conservative false-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.98\linewidth]{fig_r32_structural_family_stress.pdf}
-\caption{Structural-family stratified stress diagnostic based on the true R28 event-disjoint $N=2000$ prediction export. P and F indicate whether the family-level conservative false-safe reliability index passes or flags the illustrative $\beta_{\mathrm{FS,cons}}\ge 2.5$ criterion.}
+\caption{Structural-family stratified stress diagnostic based on the true event-disjoint $N=2000$ prediction export. P and F indicate whether the family-level conservative false-safe reliability index passes or flags the illustrative $\beta_{\mathrm{FS,cons}}\ge 2.5$ criterion.}
 \label{fig:family-diagnostic}
 \end{figure}
 
@@ -381,7 +381,7 @@ Table~\ref{tab:weakest-family} lists the weakest structural family for each eval
 
 \begin{table}[htbp]
 \centering
-\caption{Weakest structural family for each model under the R32 stratified diagnostic. FS = false-safe; FU = false-unsafe.}
+\caption{Weakest structural family for each model under the stratified diagnostic. FS = false-safe; FU = false-unsafe.}
 \label{tab:weakest-family}
 \resizebox{\linewidth}{!}{%
 \input{table_r32_structural_family_worst.tex}
@@ -409,3 +409,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

@@ -1,8 +1,8 @@
-# R32 decision and structural-family diagnostic addendum
+# Final decision and structural-family diagnostic addendum
 
 ## Scope and evidence boundary
 
-This addendum uses existing, already generated evidence from the R22/R24 decision-risk and false-safe reliability tables and the R28 true event-disjoint N=2000 prediction export. It does not introduce simulated placeholder values, fabricated observations, or AI-generated numerical results.
+This addendum uses existing, already generated evidence from the decision-risk and false-safe reliability tables and the true event-disjoint N=2000 prediction export. It does not introduce simulated placeholder values, fabricated observations, or AI-generated numerical results.
 
 The structural-family analysis is a stratified diagnostic within the event-disjoint N=2000 stress test. It is not a true leave-family-out retraining experiment and should not be described as proof of extrapolation to unseen building inventories.
 

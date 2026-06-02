@@ -79,7 +79,7 @@ for i in range(len(xs)-1):
 
 # False-safe metric branch
 box(8.05, 3.36, 1.75, 0.70, "False-safe\nevent probability", colors["rose"], colors["rose_edge"], fs=9.4)
-box(10.05, 3.36, 1.55, 0.70, r"$\beta_{\mathrm{FS,cons}}$\neligibility filter", colors["green"], colors["green_edge"], fs=9.4, weight="bold")
+box(10.05, 3.36, 1.55, 0.70, "$\\beta_{\\mathrm{FS,cons}}$" + "\n" + "eligibility filter", colors["green"], colors["green_edge"], fs=9.4, weight="bold")
 arrow(9.90, ys+0.08, 8.93, 4.05, rad=-0.18)
 arrow(9.80, 3.71, 10.05, 3.71)
 box(10.05, 2.35, 1.55, 0.62, "Action: accept,\nwiden, or reject", colors["gray"], colors["gray_edge"], fs=9.2)

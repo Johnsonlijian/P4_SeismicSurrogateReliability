@@ -1,3 +1,0 @@
-protocol,purpose,source_events,target_fit_or_cal_events,target_test_events,target_fit_or_cal_components,target_test_components,event_overlap_cal_test,N_target_labels,test_rows_per_model_all_reps,test_events_in_trace,systems,recorded_population
-main event-held-out,Source-to-target transfer with target-event holdout; target calibration/test are component-level splits within target events.,29,15,14,186,186,14,500,29760,14,48,"44 events, 1000 components, Mw 5.4-8.8"
-event-disjoint target,Stricter stress test where target fit/calibration events and target-test events are mutually disjoint.,29,7,8,185,187,0,500,29920,8,48,"44 events, 1000 components, Mw 5.4-8.8"

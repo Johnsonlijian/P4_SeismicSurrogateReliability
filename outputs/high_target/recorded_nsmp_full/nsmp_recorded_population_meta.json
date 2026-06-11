@@ -1,0 +1,19 @@
+{
+  "source": "USGS National Strong-Motion Program public SMC corrected acceleration zips",
+  "nsmp_index": "https://escweb.wr.usgs.gov/nsmp-data/nsmn_eqdata.html",
+  "smc_format_doc": "https://escweb.wr.usgs.gov/nsmp-data/smcfmt.html",
+  "min_magnitude": 4.5,
+  "min_pga_g": 0.005,
+  "max_components_per_event": 60,
+  "n_events_used": 44,
+  "n_components": 1000,
+  "n_labels_linear_sdof": 30000,
+  "out_dt_s": 0.01,
+  "n_samples": 4096,
+  "window_duration_s": 40.95,
+  "pga_g_median": 0.026489096663387002,
+  "pga_g_p10": 0.00663308125833909,
+  "pga_g_p90": 0.19916388903324053,
+  "magnitude_min": 5.4,
+  "magnitude_max": 8.8
+}

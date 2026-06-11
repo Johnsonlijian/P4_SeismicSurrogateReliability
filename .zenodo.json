@@ -1,0 +1,26 @@
+{
+  "title": "False-safe reliability filtering for seismic surrogate models under event-level distribution shift",
+  "upload_type": "software",
+  "description": "Public reproducibility package for the RESS manuscript. The repository contains code, derived result tables, final figures, source registries, and run instructions. It excludes active manuscript files and raw third-party data.",
+  "creators": [
+    {
+      "name": "Ren, Lijian",
+      "orcid": "0000-0003-1629-4368"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "seismic surrogate models",
+    "false-safe reliability",
+    "conformal prediction",
+    "event-level distribution shift",
+    "reliability engineering"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Johnsonlijian/P4_SeismicSurrogateReliability",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

@@ -1,8 +1,0 @@
-model_label,training_mode,main_settings,engineering_role,features
-Ridge direct,Target-label direct regression,StandardScaler; Ridge alpha=1.0,Linear conservative baseline for finite target labels,8 ground-motion scalars + 6 structural/system scalars
-RF direct,Target-label direct regression,RandomForestRegressor; 200 trees; min leaf=1,Non-parametric tree baseline,8 ground-motion scalars + 6 structural/system scalars
-HGB direct,Target-label direct regression,HistGradientBoosting; 200 iterations; learning rate=0.05; max leaves=15; L2=0.01,Sklearn boosting baseline,8 ground-motion scalars + 6 structural/system scalars
-XGB direct,Target-label direct regression,XGBoost; 200 trees; depth=3; learning rate=0.05; subsample=0.9; colsample=0.9; lambda=1.0,High-capacity boosting comparator,8 ground-motion scalars + 6 structural/system scalars
-LGBM direct,Target-label direct regression,LightGBM; 200 trees; depth=3; learning rate=0.05; subsample=0.9; colsample=0.9; lambda=1.0,High-capacity boosting comparator,8 ground-motion scalars + 6 structural/system scalars
-MLP scratch,Target labels only,"MLP (64, 32), ReLU, Adam; lr=1e-3; max_iter=400; batch <=32",Same neural architecture without source pretraining,8 ground-motion scalars + 6 structural/system scalars
-MLP finetune,Source pretraining plus target fine-tuning,"Source MLP (64, 32), early stopping; target partial_fit 120 epochs; lr=3e-4",Foundation/surrogate-transfer candidate,8 ground-motion scalars + 6 structural/system scalars

@@ -1,0 +1,16 @@
+{
+  "sources": [
+    "recorded",
+    "synthetic"
+  ],
+  "n_systems": 48,
+  "n_labels_total": 57600,
+  "n_valid": 57600,
+  "max_recorded_components": 1000,
+  "edps": [
+    "peak_roof_disp_m",
+    "max_interstory_drift_ratio",
+    "residual_roof_disp_m",
+    "max_story_ductility"
+  ]
+}

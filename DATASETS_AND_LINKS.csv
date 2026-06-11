@@ -1,4 +1,4 @@
-﻿name,type,redistribution_status,location_or_url,notes
-Derived full residual trace,derived csv,redistributed in repository,outputs/high_target/r21_full_residual_trace/residual_trace_samples.csv,Derived residual samples used for manuscript figures
-Derived event-disjoint residual trace,derived csv,redistributed in repository,outputs/high_target/event_disjoint_conformal_stress/event_disjoint_residual_samples.csv,Derived residual samples used for manuscript figures
-Raw ground-motion/source simulation data,raw third-party or source data,not redistributed,see manuscript data availability,Redistribution rights are not asserted in this public package
+dataset,source_url,redistributed_here,included_public_files,notes
+NSMP recorded earthquake records,https://www.strongmotioncenter.org/,no,"derived metadata, source registry, labels, summaries",Raw ground-motion arrays are excluded; derived inspection tables are included.
+Nonlinear MDOF benchmark labels,local simulation derived from project benchmark and NSMP metadata,derived labels only,recorded_nonlinear_mdof_labels.csv and summary metadata,Simulation labels are included as derived outputs; raw accelerograms are excluded.
+NASA C-MAPSS FD002 turbofan data,https://www.nasa.gov/content/prognostics-center-of-excellence-data-set-repository,no,derived audit summary/detail CSVs,The raw train_FD002.txt file is excluded and should be downloaded from the public source.

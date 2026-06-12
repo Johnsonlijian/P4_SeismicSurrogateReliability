@@ -2,7 +2,7 @@
 
 This is the public reproducibility package for the RESS submission:
 
-**False-safe reliability filtering for seismic surrogate models under event-level distribution shift**
+**False-safe eligibility auditing of machine-learning surrogates for seismic demand screening under event-level distribution shift**
 
 The repository is intentionally limited to reproducible, non-sensitive
 materials: scripts, derived tables, generated figures, source registries,
@@ -34,5 +34,5 @@ C-MAPSS text files are not redistributed here.
 ## Suggested citation
 
 Please cite the associated manuscript and this repository. If Zenodo is enabled
-for this GitHub repository, the `v1.0.0-ress` release should mint an archival
+for this GitHub repository, the `v1.0.1-ress` release should mint an archival
 DOI using the metadata in `.zenodo.json`.

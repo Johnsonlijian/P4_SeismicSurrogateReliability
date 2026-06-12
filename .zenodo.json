@@ -1,5 +1,5 @@
 {
-  "title": "False-safe reliability filtering for seismic surrogate models under event-level distribution shift",
+  "title": "False-safe eligibility auditing of machine-learning surrogates for seismic demand screening under event-level distribution shift",
   "upload_type": "software",
   "description": "Public reproducibility package for the RESS manuscript. The repository contains code, derived result tables, final figures, source registries, and run instructions. It excludes active manuscript files and raw third-party data.",
   "creators": [

@@ -56,7 +56,7 @@ python code/82_r35_second_domain_cmapss.py
 ## DOI/release workflow
 
 1. Commit the clean repository state.
-2. Tag the release, for example `v1.0.0-ress`.
+2. Tag the release, for example `v1.0.1-ress`.
 3. Push the branch and tag to GitHub.
 4. If Zenodo is connected to the GitHub repository, create/publish the GitHub
    release so Zenodo archives the snapshot and mints a DOI.
